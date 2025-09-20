@@ -1,0 +1,25 @@
+{
+  "scripts":{
+    "start": "nodemon index.js"
+  },
+
+  "name": "web-ii-practico-ii-backend",
+  "version": "1.0.0",
+  "description": "A REST API backend for Spotify clone, university project",
+  "main": "index.js",
+  "type": "commonjs",
+  "repository": "https://github.com/ecuellarfernandez/web-ii-project-ii-backend.git",
+  "author": "Erick Cuellar Fernandez",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.1",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7"
+  }
+}
