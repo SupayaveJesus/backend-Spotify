@@ -1,9 +1,9 @@
 const { sequelize } = require('../config/db.config');
 
-const ArtistModel = require('./artist')(sequelize);
-const AlbumModel = require('./album')(sequelize);
-const SongModel = require('./song')(sequelize);
-const GenreModel = require('./genre')(sequelize);
+const artist = require('./artist')(sequelize);
+const album = require('./album')(sequelize);
+const song = require('./song')(sequelize);
+const genre = require('./genre')(sequelize);
 
 //Artist 1 to many Album
 artist.hasMany(album,{

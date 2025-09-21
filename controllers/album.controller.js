@@ -76,7 +76,7 @@ exports.putAlbumUpdate = async (req, res) => {
     }
     
     const { id } = req.params;
-    const body = validation.data; // ✅ Corregido el typo
+    const body = validation.data; 
 
     const albumDataUpdate = await album.findByPk(id);
     if (!albumDataUpdate) {

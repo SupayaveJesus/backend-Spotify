@@ -28,6 +28,7 @@ exports.getArtistById = async (req, res) => {
         {
           model: db.genre,
           as: "genres",
+          through: { attributes: [] },
         },
       ],
     });
@@ -35,6 +36,9 @@ exports.getArtistById = async (req, res) => {
     if (!artistData) {
       return res.status(404).send({ message: "Artista no encontrado" });
     }
+
+    res.status(200).json(artistData);
+    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -47,7 +51,7 @@ exports.postCreateArtist = async (req, res) => {
       name: req.body.name,
       image: imagePath,
     };
-    const validation = validateArtist({ body: data });
+    const validation = validate({ body: data });
 
     if (validation.errors) {
       // Si hay errores de validación, eliminar el archivo subido
