@@ -154,7 +154,7 @@ const validateSong = (req) => {
         errors.push("El ID del álbum es requerido");
     }
 
-    if(errors.length > 0) { // ← Cambiar Object.keys por .length
+    if(errors.length > 0) { 
         return { errors };
     }
 

@@ -18,7 +18,10 @@ exports.getAlbumList = async (req, res) => {
 exports.getAlbumById = async (req, res) => {
   const { id } = req.params;
   const albumData = await album.findByPk(id, {
-    include: ["artist", "songs"],
+    include: [
+      { model: db.artist, as: "artist" },
+      { model: db.song, as: "songs" },
+    ],
   });
   if (!albumData) {
     return res.status(404).send({ message: "Álbum no encontrado" });
@@ -55,50 +58,94 @@ exports.patchUpdateAlbum = async (req, res) => {
     return res.status(404).send({ message: "Álbum no encontrado" });
   }
 
-  const { name, artistId, image } = req.body;
+  const { name, artistId } = req.body;
 
+  // ✅ Actualizar campos si existen
   if (name) albumDataUpdate.name = name;
   if (artistId) albumDataUpdate.artistId = artistId;
-  if (image) albumDataUpdate.image = image;
 
-  const saved = await albumDataUpdate.save();
-  if (!saved) {
-    return res.status(400).json({ message: "No se pudo actualizar el álbum" });
+  // ✅ Manejar imagen SI se envía archivo
+  if (req.files && req.files.image) {
+    try {
+      const imagePath = await handleFileUpload(req.files.image, "album");
+      // Eliminar imagen anterior si existe
+      if (albumDataUpdate.image) {
+        try {
+          fs.unlinkSync(albumDataUpdate.image);
+        } catch (error) {
+          console.log("No se pudo eliminar imagen anterior:", error.message);
+        }
+      }
+      albumDataUpdate.image = imagePath;
+    } catch (error) {
+      return res.status(500).json({ 
+        message: "Error al subir la imagen", 
+        error: error.message 
+      });
+    }
   }
-  res.json(saved);
+
+  try {
+    const saved = await albumDataUpdate.save();
+    res.json(saved);
+  } catch (error) {
+    return res.status(500).json({ 
+      message: "Error al guardar el álbum", 
+      error: error.message 
+    });
+  }
 };
 
 exports.putAlbumUpdate = async (req, res) => {
+  const { id } = req.params;
+  const { name, artistId } = req.body;
+  
+  // ✅ Solo validar campos esenciales
+  if (!name) {
+    return res.status(400).json({ errors: { name: "El nombre es requerido" } });
+  }
+  if (!artistId) {
+    return res.status(400).json({ errors: { artistId: "El artista es requerido" } });
+  }
+
+  const albumDataUpdate = await album.findByPk(id);
+  if (!albumDataUpdate) {
+    return res.status(404).send({ message: "Álbum no encontrado" });
+  }
+
+  albumDataUpdate.name = name;
+  albumDataUpdate.artistId = artistId;
+
+  // ✅ Imagen opcional en PUT también
+  if (req.files && req.files.image) {
+    try {
+      const imagePath = await handleFileUpload(req.files.image, "album");
+      if (albumDataUpdate.image) {
+        try {
+          fs.unlinkSync(albumDataUpdate.image);
+        } catch (error) {
+          console.log("No se pudo eliminar imagen anterior:", error.message);
+        }
+      }
+      albumDataUpdate.image = imagePath;
+    } catch (error) {
+      return res.status(500).json({ 
+        message: "Error al subir la imagen", 
+        error: error.message 
+      });
+    }
+  }
+
   try {
-    const validation = validateAlbum(req);
-    if (validation.errors) {
-      return res.status(400).json({ errors: validation.errors });
-    }
-    
-    const { id } = req.params;
-    const body = validation.data; 
-
-    const albumDataUpdate = await album.findByPk(id);
-    if (!albumDataUpdate) {
-      return res.status(404).send({ message: "Álbum no encontrado" });
-    }
-
-    // Actualizar todos los campos (PUT requiere todos los datos)
-    albumDataUpdate.name = body.name;
-    albumDataUpdate.artistId = body.artistId;
-    albumDataUpdate.image = body.image;
-
     const saved = await albumDataUpdate.save();
-    if (!saved) {
-      return res.status(400).json({ message: "No se pudo actualizar el álbum" });
-    }
-    
     res.json(saved);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ 
+      message: "Error al actualizar el álbum", 
+      error: error.message 
+    });
   }
 };
-
 exports.deleteAlbum = async (req, res) => {
   const { id } = req.params;
 
